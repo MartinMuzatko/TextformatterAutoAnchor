@@ -1,0 +1,98 @@
+<?php
+
+/**
+ * ProcessWire Auto Anchor
+ *
+ * Makes 
+ * 
+ * ProcessWire 2.x
+ * PHP >5.4
+ * written with <3 by Martin Muzatko 
+ * Licensed under MIT, see LICENSE.TXT
+ * 
+ * http://www.happy-css.com
+ *
+ */
+
+class TextformatterAutoAnchor extends Textformatter implements Module, ConfigurableModule {
+
+	/**
+	 * Populate default configuration (will be overwritten after constructor with user's own configuration)
+	 *
+	 */
+	public function __construct() {
+		foreach(self::$configDefaults as $key => $value) {
+			$this->$key = $value;
+		}
+	}
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Automatically add anchors and IDs to Headings', 
+			'version' => 101,
+			'href' => '',
+			'summary' => "Adds an id attribute to every heading with a slug of the text. Intended for easily creating linkable sections", 
+		); 
+	}
+
+	protected static $configDefaults = [
+		'headingSelector' => '2-6',
+		'anchorClass' => 'heading-anchor',
+		'anchorContent' => '#',
+	];
+
+	public function format(&$str) {
+		$hs = $this->headingSelector;
+		$str = preg_replace_callback(
+			'/(<h['.$hs.']>.*<\/h['.$hs.']>)/', 
+			function ($matches) use ($hs)
+			{
+				return preg_replace_callback(
+					'/<(h['.$hs.'])>(.*)<\/h.>/',
+					function ($m) use ($hs)
+					{
+						$slug = strtolower(str_replace(' ', '-', $m[2]));
+						return '
+							<'.$m[1].' id="'.$slug.'">
+							<a class="'.$this->anchorClass.'" href="#'.$slug.'">'.$this->anchorContent.'</a>'.$m[2].
+							'</'.$m[1].'>';
+					},
+					$matches[0]
+				);
+			}, 
+			$str
+		);
+	}
+
+	public static function getModuleConfigInputfields(array $data)
+	{
+		$data = array_merge($data, self::$configDefaults);
+		$form = new InputfieldWrapper();
+
+		$f = wire('modules')->get('InputfieldText');
+		$f->name = 'headingSelector'; 
+		$f->label = 'Heading Selector';
+		$f->value = $data['headingSelector'];
+		$f->description = 'use a regex-like range or list, e.g.: `2-6` or `346`.';
+
+		$form->add($f);
+
+		$f = wire('modules')->get('InputfieldText');
+		$f->name = 'anchorClass'; 
+		$f->label = 'Anchor Class';
+		$f->value = $data['anchorClass'];
+		$f->description = 'Your css classes that are attached to the anchor link.';
+
+		$form->add($f);
+
+		$f = wire('modules')->get('InputfieldText');
+		$f->name = 'anchorContent'; 
+		$f->label = 'Anchor Content';
+		$f->value = $data['anchorContent'];
+		$f->description = 'The text for your anchor. If you prefer an icon, you could also use HTML for example.';
+
+		$form->add($f);
+
+		return $form; 
+	}
+}
