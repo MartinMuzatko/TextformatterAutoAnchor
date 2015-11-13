@@ -8,6 +8,7 @@ This Textformatter adds an id attribute to every heading with a slug of the text
 ## Demo
 
 Currently it is used at http://www.happy-css.com
+
 AutoAnchor in action: http://happy-css.com/lessons/riotjs/reusable-components/
 
 ### Preview
