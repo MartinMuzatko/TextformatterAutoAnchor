@@ -3,7 +3,8 @@
 /**
  * ProcessWire Auto Anchor
  *
- * Makes 
+ * Makes creating sharable sections of text easy!
+ * Adds IDs and Anchors to headings (configurable)
  * 
  * ProcessWire 2.x
  * PHP >5.4
