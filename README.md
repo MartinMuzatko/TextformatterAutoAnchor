@@ -5,12 +5,6 @@ ProcessWire Module: Automatically add anchors and IDs to Headings
 
 This Textformatter adds an id attribute to every heading with a slug of the text. Intended for easily creating linkable sections.
 
-## Demo
-
-Currently it is used at http://www.happy-css.com
-
-AutoAnchor in action: http://happy-css.com/lessons/riotjs/reusable-components/
-
 ### Preview
 **Before**
 ![Before](http://i.imgur.com/pzkZaWF.jpg)
