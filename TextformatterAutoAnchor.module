@@ -30,7 +30,7 @@ class TextformatterAutoAnchor extends Textformatter implements Module, Configura
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Automatically add anchors and IDs to Headings', 
-			'version' => 101,
+			'version' => 110,
 			'href' => '',
 			'summary' => "Adds an id attribute to every heading with a slug of the text. Intended for easily creating linkable sections", 
 		); 
@@ -38,6 +38,7 @@ class TextformatterAutoAnchor extends Textformatter implements Module, Configura
 
 	protected static $configDefaults = [
 		'headingSelector' => '2-6',
+		'anchorEnabled' => true,
 		'anchorClass' => 'heading-anchor',
 		'anchorContent' => '#',
 	];
@@ -53,9 +54,16 @@ class TextformatterAutoAnchor extends Textformatter implements Module, Configura
 					function ($m) use ($hs)
 					{
 						$slug = strtolower(str_replace(' ', '-', $m[2]));
+						$anchor = $this->anchorEnabled 
+							? '<a class="' . $this->anchorClass . '" href="#' . $slug . '">' .
+              					$this->anchorContent .
+				              '</a>'
+              				: '';
+
+
 						return '
-							<'.$m[1].' id="'.$slug.'">
-							<a class="'.$this->anchorClass.'" href="#'.$slug.'">'.$this->anchorContent.'</a>'.$m[2].
+							<'.$m[1].' id="'.$slug.'"> .
+								$this->anchorContent .
 							'</'.$m[1].'>';
 					},
 					$matches[0]
@@ -67,32 +75,50 @@ class TextformatterAutoAnchor extends Textformatter implements Module, Configura
 
 	public static function getModuleConfigInputfields(array $data)
 	{
-		$data = array_merge($data, self::$configDefaults);
 		$form = new InputfieldWrapper();
 
 		$f = wire('modules')->get('InputfieldText');
-		$f->name = 'headingSelector'; 
+		$f->name = 'headingSelector';
 		$f->label = 'Heading Selector';
-		$f->value = $data['headingSelector'];
+		$f->value = !empty($data['headingSelector'])
+			? $data['headingSelector']
+			: self::$configDefaults['headingSelector'];
 		$f->description = 'use a regex-like range or list, e.g.: `2-6` or `346`.';
 
 		$form->add($f);
 
+		$fs = wire('modules')->get('InputfieldFieldset');
+		$fs->label = wire()->_('Anchor Options');
+
+		$f = wire('modules')->get("InputfieldCheckbox");
+		$f->attr('name', 'anchorEnabled');
+		$f->label = wire()->_('Enable anchor');
+		$f->description = wire()->_('Output an anchor in each heading');
+		$f->columnWidth = 33;
+		$f->attr('checked', !empty($data['anchorEnabled']) && $data['anchorEnabled'] == '1' ? 'checked' : '');
+		$fs->add($f);
+
 		$f = wire('modules')->get('InputfieldText');
-		$f->name = 'anchorClass'; 
+		$f->name = 'anchorClass';
 		$f->label = 'Anchor Class';
-		$f->value = $data['anchorClass'];
+		$f->value = !empty($data['anchorClass'])
+			? $data['anchorClass']
+			: self::$configDefaults['anchorClass'];
+		$f->columnWidth = 33;
 		$f->description = 'Your css classes that are attached to the anchor link.';
-
-		$form->add($f);
+		$fs->add($f);
 
 		$f = wire('modules')->get('InputfieldText');
-		$f->name = 'anchorContent'; 
+		$f->name = 'anchorContent';
 		$f->label = 'Anchor Content';
-		$f->value = $data['anchorContent'];
+		$f->value = !empty($data['anchorContent'])
+			? $data['anchorContent']
+			: self::$configDefaults['anchorContent'];
+		$f->columnWidth = 33;
 		$f->description = 'The text for your anchor. If you prefer an icon, you could also use HTML for example.';
+		$fs->add($f);
 
-		$form->add($f);
+		$form->add($fs);
 
 		return $form; 
 	}
